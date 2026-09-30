@@ -1,9 +1,9 @@
 name: Build FMLY CRAFT APK
 
 on:
-  workflow_dispatch:
   push:
     branches: [ main ]
+  workflow_dispatch:
 
 jobs:
   build-apk:
@@ -12,27 +12,44 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.24.5'
-          channel: stable
+          channel: 'stable'
           cache: true
 
       - name: Generate Android project files
         run: flutter create --platforms=android --org com.fmlycraft --project-name fmly_craft .
-      - name: Fix plugins compileSdk
+
+      - name: Configure compileSdk and Gradle properties
         run: |
-          cat << 'EOF' >> android/build.gradle
+          echo "android.useAndroidX=true" >> android/gradle.properties
+          echo "android.enableJetifier=true" >> android/gradle.properties
+          cat << 'GRADLE' >> android/build.gradle
           subprojects {
-              afterEvaluate { project ->
-                  if (project.hasProperty("android")) {
-                      project.android {
-                          compileSdkVersion 34
+              project.configurations.all {
+                  resolutionStrategy.eachDependency { details ->
+                      if (details.requested.group == 'com.android.support.test.espresso') {
+                          details.useVersion '3.0.2'
                       }
-                  }              }
+                  }
+              }
+              plugins.withId('com.android.library') {
+                  project.android {
+                      compileSdkVersion 34
+                      defaultConfig {
+                          targetSdkVersion 34
+                      }
+                  }
+              }
           }
-          EOF
+          GRADLE
 
       - name: Get dependencies
         run: flutter pub get
@@ -45,4 +62,3 @@ jobs:
         with:
           name: fmly-craft-release-apk
           path: build/app/outputs/flutter-apk/app-release.apk
-          if-no-files-found: error
