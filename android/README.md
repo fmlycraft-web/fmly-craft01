@@ -1,0 +1,1 @@
+Flutter generates the Android Gradle wrapper when the project is created with `flutter create`. This repository contains the Android application source/configuration; run `flutter create .` from the project root with Flutter installed if the wrapper is absent.
