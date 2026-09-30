@@ -21,6 +21,18 @@ jobs:
 
       - name: Generate Android project files
         run: flutter create --platforms=android --org com.fmlycraft --project-name fmly_craft .
+      - name: Fix plugins compileSdk
+        run: |
+          cat << 'EOF' >> android/build.gradle
+          subprojects {
+              afterEvaluate { project ->
+                  if (project.hasProperty("android")) {
+                      project.android {
+                          compileSdkVersion 34
+                      }
+                  }              }
+          }
+          EOF
 
       - name: Get dependencies
         run: flutter pub get
