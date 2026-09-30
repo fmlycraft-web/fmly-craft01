@@ -20,7 +20,7 @@ jobs:
           cache: true
 
       - name: Generate Android project files
-        run: flutter create --platforms=android --org com.fmlycraft .
+        run: flutter create --platforms=android --org com.fmlycraft --project-name fmly_craft .
 
       - name: Get dependencies
         run: flutter pub get
